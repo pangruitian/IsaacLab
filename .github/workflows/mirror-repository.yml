@@ -1,0 +1,73 @@
+name: Mirror Repository
+
+on:
+  pull_request:
+    branches:
+      - main
+
+# Concurrency control to prevent parallel runs
+concurrency:
+  group: premerge-mirror-verification-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  mirror-repository:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Only run on specific repository and specific PRs
+    if: github.repository == 'isaac-sim/IsaacLab' && github.event.pull_request.base.ref == 'main'
+    environment:
+      name: mirror-production
+      url: https://github.com/${{ vars.TARGET_REPO }}
+
+    steps:
+    - name: Install Git LFS
+      run: |
+        curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+        sudo apt-get install git-lfs
+        git lfs install
+
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        lfs: true
+
+    - name: Configure Git
+      run: |
+        git config --global user.name "Isaac LAB CI Bot"
+        git config --global user.email "isaac-lab-ci-bot@nvidia.com"
+
+    - name: Set Target Repository URL
+      run: |
+        echo "TARGET_REPO=${{ vars.TARGET_REPO }}" >> $GITHUB_ENV
+        echo "TARGET_BRANCH=${{ vars.TARGET_BRANCH || 'main' }}" >> $GITHUB_ENV
+
+    - name: Mirror to Target Repository
+      run: |
+        git checkout main
+        # Remove existing target remote if it exists
+        git remote remove target 2>/dev/null || true
+
+        # Add target remote with authentication
+        git remote add target https://${{ secrets.GH_TOKEN }}@github.com/${TARGET_REPO}.git
+
+        # Fetch latest from target to avoid conflicts
+        git fetch target $TARGET_BRANCH 2>/dev/null || true
+
+        # For pre-merge verification, we'll create a temporary branch with PR changes
+        # and push it to the target repository for verification
+        PR_BRANCH_NAME="pr-${{ github.event.number }}-${{ github.head_ref }}"
+        
+        # Create a temporary branch with the PR changes
+        git checkout -b $PR_BRANCH_NAME
+        
+        # Push the PR branch to target repository for verification
+        git push --force target $PR_BRANCH_NAME
+
+        echo "✅ Successfully pushed PR verification branch to ${TARGET_REPO}:$PR_BRANCH_NAME"
+        echo "PR Number: ${{ github.event.number }}"
+        echo "PR Head Branch: ${{ github.head_ref }}"
