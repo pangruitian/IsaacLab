@@ -3,11 +3,6 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-# Copyright (c) 2022-2025, The Isaac Lab Project Developers.
-# All rights reserved.
-#
-# SPDX-License-Identifier: BSD-3-Clause
-
 """Installation script for the 'isaaclab' python package."""
 
 import os
@@ -32,7 +27,7 @@ INSTALL_REQUIRES = [
     # devices
     "hidapi==0.14.0.post2",
     # reinforcement learning
-    "gymnasium>=1.0",
+    "gymnasium==1.2.0",
     # procedural-generation
     "trimesh",
     "pyglet<2",

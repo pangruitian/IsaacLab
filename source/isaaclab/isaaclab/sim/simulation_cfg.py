@@ -3,11 +3,6 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-# Copyright (c) 2022-2025, The Isaac Lab Project Developers.
-# All rights reserved.
-#
-# SPDX-License-Identifier: BSD-3-Clause
-
 """Base configuration of the environment.
 
 This module defines the general configuration of the environment. It includes parameters for
@@ -314,6 +309,11 @@ class SimulationCfg:
     Note:
         When enabled, the GUI will not update the physics parameters in real-time. To enable real-time
         updates, please set this flag to :obj:`False`.
+
+        When using GPU simulation, it is required to enable Fabric to visualize updates in the renderer.
+        Transform updates are propagated to the renderer through Fabric. If Fabric is disabled with GPU simulation,
+        the renderer will not be able to render any updates in the simulation, although simulation will still be
+        running under the hood.
     """
 
     physx: PhysxCfg = PhysxCfg()
