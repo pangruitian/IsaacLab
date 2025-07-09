@@ -114,6 +114,7 @@ def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, RigidObj
             cone_object.reset()
             print("----------------------------------------")
             print("[INFO]: Resetting object state...")
+            print(cone_object.data.root_pos_w)
         # apply sim data
         cone_object.write_data_to_sim()
         # perform step

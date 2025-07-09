@@ -66,7 +66,7 @@ def main():
 
     # Robots
     robot_cfg = CRAZYFLIE_CFG.replace(prim_path="/World/Crazyflie")
-    robot_cfg.spawn.func("/World/Crazyflie", robot_cfg.spawn, translation=robot_cfg.init_state.pos)
+    # robot_cfg.spawn.func("/World/Crazyflie", robot_cfg.spawn, translation=robot_cfg.init_state.pos)
 
     # create handles for the robots
     robot = Articulation(robot_cfg)
@@ -78,7 +78,6 @@ def main():
     prop_body_ids = robot.find_bodies("m.*_prop")[0]
     robot_mass = robot.root_physx_view.get_masses().sum()
     gravity = torch.tensor(sim.cfg.gravity, device=sim.device).norm()
-
     # Now we are ready!
     print("[INFO]: Setup complete...")
 
@@ -104,7 +103,7 @@ def main():
         # apply action to the robot (make the robot float in place)
         forces = torch.zeros(robot.num_instances, 4, 3, device=sim.device)
         torques = torch.zeros_like(forces)
-        forces[..., 2] = robot_mass * gravity / 4.0
+        forces[:, :, 2] = robot_mass * gravity / 4.0
         robot.set_external_force_and_torque(forces, torques, body_ids=prop_body_ids)
         robot.write_data_to_sim()
         # perform step
